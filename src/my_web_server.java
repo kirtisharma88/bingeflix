@@ -114,9 +114,98 @@ public class my_web_server extends JHTTPServer {
                 ex.printStackTrace();
             }
 
+        }else if (uri.equals("/getCategory")) {
+            //getcategories from database and append them in a string 
+            String ans = "";
+            try {
+                ResultSet rs = db_loader.executeSQL("select * from category");
+                while (rs.next()) {
+                    String catname = rs.getString("category_name");
+
+                    ans += catname + "**";
+                }
+                //ans==== demo*photo*pic
+                res = new Response(HTTP_OK, "text/plain", ans);
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        } else if (uri.equals("/addmovie")) {
+            String cat = parms.getProperty("category");
+            String mn = parms.getProperty("movie_name");
+            String desc = parms.getProperty("description");
+
+            int amt = Integer.parseInt(parms.getProperty("amount"));
+            try {
+
+                ResultSet rs = db_loader.executeSQL("select *  from movie where movie_name='" + mn + "' and category='" + cat + "'");
+
+                if (rs.next()) {
+                    res = new Response(HTTP_OK, "text/plain", "fail");
+                } else {
+
+                    String filename = saveFileOnServerWithRandomName(files, parms, "square_photo", "src/bingeflixPhotos");
+                    System.out.println("photoname   " + filename);
+                    String photoname = "src/bingeflixPhotos/" + filename;
+
+                    String filename2 = saveFileOnServerWithRandomName(files, parms, "wide_photo", "src/bingeflixPhotos");
+                    System.out.println("photoname2   " + filename2);
+                    String photoname2 = "src/bingeflixPhotos/" + filename2;
+
+                    String filename3 = saveFileOnServerWithRandomName(files, parms, "sample_video", "src/bingeflixPhotos");
+                    System.out.println("sample_video   " + filename3);
+                    String photoname3 = "src/bingeflixPhotos/" + filename3;
+
+                    rs.moveToInsertRow();
+                    rs.updateString("category", cat);
+                    rs.updateString("movie_name", mn);
+                    rs.updateString("description", desc);
+                    rs.updateInt("amount", amt);
+                    rs.updateString("square_photo", photoname);
+                    rs.updateString("wide_photo", photoname2);
+                    rs.updateString("sample_video", photoname3);
+
+                    rs.insertRow();
+
+                    res = new Response(HTTP_OK, "text/plain", "success");
+                }
+
+            } catch (SQLException ex) {
+                ex.printStackTrace();
+            }
+
+        } else if (uri.equals("/getAllMovies")) {
+
+            String ans = "";
+
+            try {
+                ResultSet rs = db_loader.executeSQL("select *  from movie");
+                while (rs.next()) {
+                    String movieid = rs.getString("movie_id");
+
+                    String movieName = rs.getString("movie_name");
+                    String description = rs.getString("description");
+                    String squarePhoto = rs.getString("square_photo");
+                    String wide_photo = rs.getString("wide_photo");
+                    String sample_video = rs.getString("sample_video");
+                    String amount = rs.getString("amount");
+
+                    ans += movieid + "*" + movieName + "" + description + "" + squarePhoto + "" + wide_photo + "" + sample_video + "*" + amount + "#$#";
+                }
+                res = new Response(HTTP_OK, "text/plain", ans);
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
         }
 
         return res;
     }
 
 }
+
+       
+    
+
+
